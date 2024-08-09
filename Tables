@@ -1,0 +1,79 @@
+customers
+-
+cust_id int pk
+customer_firstname varchar(20)
+customer_lastname varchar(20)
+
+
+orders
+-
+row_id PK int
+item_id varchar(10) FK >- items.item_id
+order_id varchar(10)
+created_at datetime FK >- rota.date
+quantity int
+cust_id int FK >- customers.cust_id
+delivery boolean
+add_id int FK >- address.add_id
+
+address
+-
+add_id int pk
+delivery_address_line1 varchar(100)
+delivery_address_line2 varchar(100) NULL
+delivery_city varchar(50)
+delivery_zipcode varchar(5)
+
+items 
+-
+item_id varchar(10) pk
+sku varchar(20)
+item_name varchar(50)
+item_category varchar(50)
+item_size varchar(10)
+
+
+ingredient
+-
+ing_id varchar(20) pk FK >- recipe.ing_id
+ing_name varchar(200)
+ing_weight int
+ing_meas varchar(20)
+ing_price decimal(5,2)
+
+recipe 
+-
+row_id int pk
+recipe_id varchar(20) FK >- items.sku
+ing_id varchar(10)
+quantity int
+
+inventory
+-
+inv_id int pk FK >- recipe.ing_id
+item_id varchar(10)
+quantity int
+
+shifts 
+-
+shift_id varchar(20) pk
+day_of_week varchar(10)
+start_time time
+end_time time
+
+staff
+-
+staff_id varchar(20) pk
+first_name varchar(20)
+last_name varchar(20)
+position varchar(20)
+hourly_rate decimal(5,2)
+
+rota 
+-
+row_id int pk
+rota_id varchar(20)
+date datetime
+shift_id varchar(20) FK >- shifts.shift_id
+staff_id varchar(20) FK >- staff.staff_id
+
