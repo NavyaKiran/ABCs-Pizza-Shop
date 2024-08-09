@@ -1,1 +1,59 @@
+Dashboard 1 
 
+select 
+o.order_id, i.item_price, 
+o.quantity, i.item_category, 
+i.item_name, o.created_at, 
+a.delivery_address_line1, a.delivery_address_line2, 
+a.delivery_city, a.delivery_zipcode, 
+o.delivery
+from orders o left join items i on o.item_id = i.item_id
+left join address a on o.add_id = a.add_id
+
+
+Dashboard 2
+-- PART 1 (db2)
+
+with `cte` as (select `o`.`item_id` AS `item_id`,`i`.`sku` AS `sku`,`i`.`item_name` AS `item_name`,
+`r`.`ing_id` AS `ing_id`,`r`.`quantity` AS `recipe_quantity`,`ing`.`ing_name` AS `ing_name`,`ing`.`ing_weight` 
+AS `ing_weight`,`ing`.`ing_price` AS `ing_price`,sum(`o`.`quantity`) AS `order_quantity` 
+from (((`orders` `o` left join `items` `i` on((`o`.`item_id` = `i`.`item_id`))) 
+left join `recipe` `r` on((`i`.`sku` = `r`.`recipe_id`))) left join `ingredient` `ing` on((`ing`.`ing_id` = `r`.`ing_id`))) 
+group by `o`.`item_id`,`i`.`sku`,`i`.`item_name`,`r`.`ing_id`,`r`.`quantity`,`ing`.`ing_name`,`ing`.`ing_weight`,`ing`.`ing_price`) 
+select `cte`.`item_name` AS `item_name`,`cte`.`ing_id` AS `ing_id`,`cte`.`ing_name` AS `ing_name`,`cte`.`ing_weight` 
+AS `ing_weight`,`cte`.`ing_price` AS `ing_price`,`cte`.`order_quantity` AS `order_quantity`,`cte`.`recipe_quantity` 
+AS `recipe_quantity`,(`cte`.`order_quantity` * `cte`.`recipe_quantity`) AS `ordered_weight`,(`cte`.`ing_price` / `cte`.`ing_weight`) AS `unit_cost`,
+((`cte`.`order_quantity` * `cte`.`recipe_quantity`) / (`cte`.`ing_price` / `cte`.`ing_weight`)) AS `ingredient_cost` 
+from `cte`
+
+-- PART 2
+with cte as (select ing_id, ing_name, sum(ordered_weight) as ordered_weight
+from db2
+group by 1)
+
+select cte.ing_name, cte.ordered_weight,  
+ing.ing_weight * inv.quantity as total_inv_weight, 
+ing.ing_weight * inv.quantity - cte.ordered_weight as remaining_weight
+from cte left join inventory inv on cte.ing_id = inv.item_id
+left join ingredient ing on ing.ing_id = cte.ing_id
+
+
+Dashboard 3
+
+select r.date, s.first_name, s.last_name, 
+s.hourly_rate, 
+sh.start_time, sh.end_time, 
+	((
+			HOUR (
+			timediff( sh.end_time, sh.start_time ))* 60 
+			)+(
+			MINUTE (
+			timediff( sh.end_time, sh.start_time ))))/ 60 AS hours_in_shift,
+	((
+			HOUR (
+			timediff( sh.end_time, sh.start_time ))* 60 
+			)+(
+			MINUTE (
+			timediff( sh.end_time, sh.start_time ))))/ 60 * s.hourly_rate AS staff_cost 
+from rota r left join staff s on r.staff_id = s.staff_id
+left join shifts sh on r.shift_id = sh.shift_id
